@@ -1,0 +1,10 @@
+.DS_Store
+.vscode
+Manifest.toml
+data/*.tif
+Shapefiles/
+*.pdf
+*.jlso
+my_process_shp.jl
+my_feature_weights.jl
+
