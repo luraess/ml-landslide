@@ -82,8 +82,8 @@ function prepare_data(d; checkkey=false)
 
     # Exclude unwanted features from data-set
     # NOTE: also exclude geol_37 as not present in training !!!
-    xc, yc, uid, geol_37, X = unpack(df2, ==(:X), ==(:Y), ==(:UID), ==(:Geology__37))
-    # xc, yc, uid, geol_37, dst_rd, X = unpack(df2, ==(:X), ==(:Y), ==(:UID), ==(:Geology__37), ==(:dist_roads)) # remove distance to roads
+    # xc, yc, uid, geol_37, X = unpack(df2, ==(:X), ==(:Y), ==(:UID), ==(:Geology__37))
+    xc, yc, uid, geol_37, dst_rd, X = unpack(df2, ==(:X), ==(:Y), ==(:UID), ==(:Geology__37), ==(:dist_roads)) # remove distance to roads
 
     # Standardise
     transformer_instance = Standardizer()
@@ -103,14 +103,15 @@ d = Dict( "DEM" => "data/DEM.tif",
           "Slope" => "data/Slope.tif",
           "TWI" => "data/TWI.tif" )
 
-save_fig = false
+save_fig  = true
+mach_name = "my_machine_noroad.jlso"
 
 # Load trained machine
 # @load GradientBoostingClassifier pkg=ScikitLearn verbosity=2
 # @load RandomForestClassifier pkg=ScikitLearn verbosity=0
 @load NeuralNetworkClassifier pkg=MLJFlux verbosity=0
 
-trained_mach = machine("my_machine.jlso")
+trained_mach = machine(mach_name)
 
 # Prepare data
 X, uid, df, dfm = prepare_data(d)
@@ -137,4 +138,4 @@ c = (0.25, 0.5, 0.6, 0.7, 0.8)
 # Visu
 plt = vis_classes(df_all, :LS, c; vis_class=true)
 display(plot(plt))
-save_fig && png(plot(plt,dpi=300), "docs/ls_vd_tmp.png");
+save_fig && png(plot(plt,dpi=300), "docs/ls_vd_nr.png");

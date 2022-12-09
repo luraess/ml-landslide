@@ -56,8 +56,8 @@ function prepare_data(input_file; show_info=true)
     coerce!(df2, :LS => OrderedFactor{2})
 
     # separate the target variable y from the feature set X
-    y, X = unpack(df2, ==(:LS))
-    # y, dst_rd, X = unpack(df2, ==(:LS), ==(:dist_roads)) # remove distance to roads
+    # y, X = unpack(df2, ==(:LS))
+    y, dst_rd, X = unpack(df2, ==(:LS), ==(:dist_roads)) # remove distance to roads
 
     # Standardise
     transformer_instance = Standardizer()
@@ -79,6 +79,7 @@ run        = :single
 input_file = "data/Landslides.csv"
 save_fig   = false
 save_mach  = (run==:single) ? true : false
+mach_name  = "my_machine_noroad.jlso"
 
 X, y, train, test, df, df2 = prepare_data(input_file; show_info=true)
 
@@ -137,11 +138,12 @@ elseif run == :single
     # Init the model
     # CLF = clf()
     # Hand-tune the model
-    CLF = clf(epochs=300,
-              batch_size = 5,
-              lambda = 0.01,
-              alpha = 0.01,
-              #=acceleration=CUDALibs()=#)
+    CLF = clf(epochs=600,
+              batch_size = 32,
+              lambda = 0.05,
+              alpha = 0.001,
+              acceleration=CPUThreads())
+              #acceleration=CUDALibs())
     CLF.optimiser.eta = 0.001
     
     # Train the model
@@ -153,7 +155,7 @@ elseif run == :single
     fprs_i, tprs_i, thresholds = roc(y_train, y[train])
 
     # Save machine for further application
-    save_mach && MLJ.save("my_machine.jlso", clf_machine)
+    save_mach && MLJ.save(mach_name, clf_machine)
     
     # Validate
     y_pred = MLJ.predict(clf_machine, rows=test)
@@ -165,7 +167,7 @@ elseif run == :single
     plot!(title="ROC curve",xlabel="False Positive Rate",ylabel="True Positive Rate")
     p2 = plot_confusion_matrix(y_pred,y[test]; normalise=true)
     display(plot(p1,p2))
-    save_fig && png(plot(p1,p2,dpi=300), "docs/roc_cm.png")
+    save_fig && png(plot(p1,p2,dpi=300), "docs/roc_cm_nr.png")
 
     # Obtaining different evaluation metrics
     println("Model evaluation metrics")
