@@ -193,14 +193,14 @@ Let's finally reflect on the predictability or output of the model, and how to s
 - Further leverage GPU acceleration
 - Julia specific: type stability, packaging and more
 
-## Package used
+## `small print`
+### Packages used
 This code uses, `MLJ`, `PrettyPrinting`, `CSV`, `DataFrames`, `Rasters`, `Statistics` and `Plots`.
 
-
-## Alternative
+### Alternative
 This problem can also be adressed using an Artificial Neuron Network (ANN) approach based on [Flux](https://github.com/FluxML/Flux.jl) "only": [https://github.com/tduretz/Landslides_ANN](https://github.com/tduretz/Landslides_ANN)
 
-## References
+### References
 - Tonini, M.; D’Andrea, M.; Biondi, G.; Degli Esposti, S.; Trucchia, A.; Fiorucci, P. A Machine Learning-Based Approach for Wildfire Susceptibility Mapping. The Case Study of the Liguria Region in Italy. Geosciences 2020, 10, 105. https://doi.org/10.3390/geosciences10030105
 - Park, S.; Kim, J. Landslide Susceptibility Mapping Based on Random Forest and Boosted Regression Tree Models, and a Comparison of Their Performance. Appl. Sci. 2019, 9, 942. https://doi.org/10.3390/app9050942
 - https://juliaai.github.io/DataScienceTutorials.jl/end-to-end/
