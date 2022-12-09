@@ -1,5 +1,5 @@
 # ML² - machine learning on landslide
-Julia-based workflow to predict where landslides are most likely to occur in Canton de Vaud (CH) based on the provided locations of past events and the provided (potential) landslide predictors:
+Julia-based workflow to predict where landslides are most likely to occur in Canton de Vaud (CH) based on the provided locations of past events and the (potential) landslide predictors:
 - Digital Elevation Model (DEM)
 - Slope
 - Plan curvature
@@ -11,14 +11,78 @@ Julia-based workflow to predict where landslides are most likely to occur in Can
 
 **Most of the workflow relies on [`MLJ.jl`](https://alan-turing-institute.github.io/MLJ.jl/dev/), _A Machine Learning Framework for Julia_.**
 
+## 1. Examining the dataset
+The area of interest is the canton de Vaud, Switzerland. The data set is composed of 8 GeoTif rasters; 6 have continuous features:
+<p align="center"> <img src="docs/data_1.png" alt="Dataset continuous" width="800"> </p>
+
+The remaining 2 sets represent discrete or categorical classes:
+<p align="center"> <img src="docs/data_2.png" alt="Dataset classes" width="800"> </p>
+
+### Input data as `CSV` file
+The `Landslides.csv` file contains a subset of the data including the dependent variable `LS` which reports the presence/absence of landslides. Using `CSV` and `DataFrames.jl` Julia packages, we can load and examine the dataset, which contains 5185 entries:
+```julia
+julia> df = CSV.File(input_file) |> DataFrame
+5185×9 DataFrame
+  Row │ dist_roads  DEM      TWI       plan_curvature  profil_curvature  Slope     Geology  LandCover  LS
+      │ Float64     Float64  Float64   Float64         Float64           Float64   Int64    Int64      Int64
+──────┼──────────────────────────────────────────────────────────────────────────────────────────────────────
+    1 │    90.1388    957.1  10.0174      0.00257542        1.56e-5      11.0455         2         41      0
+    2 │   282.843     536.1   9.21162    -0.00012923       -0.000289093   3.57188        1         21      0
+    3 │    90.1388    768.1  10.0824      0.00623542       -0.00240442   44.0343         2         41      0
+    4 │    79.0569    449.4   7.35267     0.00420136        0.00116142   11.3254        24         21      1
+    5 │    25.0       784.8   8.60168     0.00208871       -0.00271119   19.0155         1         41      1
+    6 │    25.0       991.5  13.7942     -0.00129205        0.00126791    8.28275        9         21      0
+    7 │    35.3553    569.2   8.86016    -0.00346738        0.00069258   23.9199        24         31      1
+    8 │    70.7107   1211.4   9.46106    -0.00180184       -0.00452195   21.2627         9         21      0
+  ⋮   │     ⋮          ⋮        ⋮            ⋮                ⋮             ⋮         ⋮         ⋮        ⋮
+ 5178 │   550.568    1499.2   8.42238     0.00542759       -0.00193218    7.82544        2         21      0
+ 5179 │   195.256    1338.4   8.78591     0.00222917        0.00286882   15.9947         1         21      1
+ 5180 │    55.9017    495.9  10.3554     -0.000160022       0.000159998   3.41456        9         21      0
+ 5181 │    70.7107    443.4  11.9715     -0.000120202       3.99e-5       1.58431        9         21      0
+ 5182 │    55.9017    460.6  11.8599      6.4e-5            0.000383965   4.04307        9         31      0
+ 5183 │    55.9017   1032.8  11.8693     -0.000550569      -7.09e-5       4.75323        1         21      0
+ 5184 │   458.939     895.5   8.91429    -0.003389          0.00749098   33.9126        11         41      1
+ 5185 │   500.0       576.2   9.6554      0.000434234       0.000594097   2.29349        1         41      0
+                                                                                            5169 rows omitted
+```
+To have a better overview of the data, we can inspect the metadata, including column scientific types using `schema(df)`:
+```julia
+julia> schema(df)
+┌──────────────────┬────────────┬─────────┐
+│ names            │ scitypes   │ types   │
+├──────────────────┼────────────┼─────────┤
+│ dist_roads       │ Continuous │ Float64 │
+│ DEM              │ Continuous │ Float64 │
+│ TWI              │ Continuous │ Float64 │
+│ plan_curvature   │ Continuous │ Float64 │
+│ profil_curvature │ Continuous │ Float64 │
+│ Slope            │ Continuous │ Float64 │
+│ Geology          │ Count      │ Int64   │
+│ LandCover        │ Count      │ Int64   │
+│ LS               │ Count      │ Int64   │
+└──────────────────┴────────────┴─────────┘
+```
+Having categorical data (`Count`) is reserved for counting finite quantities. Here, we thus want to coerce the scitype `Count` data into `OrderedFactor` or `Multiclass`. The coerced data can then be further transformed using a `OneHotEncoder` in order to split the categorical data into new boolean variables, e.g.,
+```
+Geology | 24  ->  Geology__24 | 1
+```
+Next we can separate the target variable `y` from the feature set `X`:
+```julia
+y, X = unpack(df2, ==(:LS))
+```
+standardise it, and split among train and test data:
+```julia
+train, test = partition(collect(eachindex(y)), 0.7, shuffle=true, rng=5)
+```
+Now that our data set is ready, we can proceed trying to find an appropriate model.
+
 ## Training a model
 ### Model comparison
-`MLJ.jl` offers a wide variety of ML models that can be used to predict the probability of landslide occurrence, with their relative performance, here comparing upon their relative Rrceiver operating characteristic (ROC) curves:
+`MLJ.jl` offers a wide variety of ML models that can be used to predict the probability of landslide occurrence, with their relative performance, here comparing upon their relative receiver operating characteristic (ROC) curves, which compares models' sensitivity (_true positive rate_) as function of specificity (_false positive rate_):
 <p align="center"> <img src="docs/compare.png" alt="model comparison" width="800" class="center"> </p>
 
-Selecting a well-performing model for the target data-set is important, and `MLJ.jl` offers a nice framework to access many different ones.
-
-```
+Selecting a well-performing model for the target data-set is important, and `MLJ.jl` offers a nice framework to access many different ones that would fit the input data:
+```julia
      │ Model                       Accuracy  Mean_x_entropy  f1_scores
 ─────┼─────────────────────────────────────────────────────────────────
    1 │ ExtraTreesClassifier        0.840617  0.361647        0.844025
@@ -33,14 +97,20 @@ Selecting a well-performing model for the target data-set is important, and `MLJ
   10 │ BayesianQDA                 0.738432  1.18214         0.727029
   11 │ GaussianNBClassifier        0.73329   1.31859         0.718262
   ```
+We see that models 1-4 show interesting performance metrics. Let's also have a brief look at the code to see how to implement the training framework:
 
 > code: [`model_train.jl`](model_train.jl) and selecting `run = :multi` as run type.
 
 ### Selected model
-Receiver operating characteristic (ROC) curves and confusion matrix predicting the probability of landslide occurrence using the Julia native `NeuralNetworkClassifier` (from `MLJFlux`), accessible within the `MLJ.jl` package.
+We can now load specifically the neural net classifier from `Flux.jl` as
+```julia
+clf = @load NeuralNetworkClassifier pkg=MLJFlux verbosity=0
+```
+and apply it to our training data. Besides reporting the receiver operating characteristic (ROC) curve, we can also analyse the confusion matrix predicting the probability of landslide occurrence that we obtained using the Julia native `NeuralNetworkClassifier` (from `MLJFlux`), accessible within the `MLJ.jl` package,
 
 <p align="center"> <img src="docs/roc_cm.png" alt="ROC curve and confusion matrix" width="800"> </p>
 
+and the corresponding metrics: 
 ```
 Model evaluation metrics
 - cross entropy loss: 0.3631387528119737
@@ -59,6 +129,17 @@ In addition, running the model with the `RandomForestClassifier`, we can extract
    5 │ TWI               0.111239
    6 │ plan_curvature    0.0994526
 ```
+
+Note that we tuned the model to include more minimisation iterations in order to achieve better convergence and executed the training on the GPU:
+```julia
+CLF = clf(epochs = 300,            # iterations
+          batch_size = 5,          # sub-grouping for faster processing
+          lambda = 0.01,           # regularisation
+          alpha = 0.01,            # L1 - L2 norm ratio
+          acceleration=CUDALibs()) # GPU
+CLF.optimiser.eta = 0.001          # learning rate -> relaxation parameter
+```
+Let's have a brief look at the code as well:
 
 > code: [`model_train.jl`](model_train.jl) and selecting `run = :single` as run type.
 
