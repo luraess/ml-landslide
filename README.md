@@ -11,7 +11,7 @@ Julia-based workflow to predict where landslides are most likely to occur in Can
 
 **Most of the workflow relies on [`MLJ.jl`](https://alan-turing-institute.github.io/MLJ.jl/dev/), _A Machine Learning Framework for Julia_.**
 
-## 1. Examining the dataset
+## Examining the dataset
 The area of interest is the canton de Vaud, Switzerland. The data set is composed of 8 GeoTif rasters; 6 have continuous features:
 <p align="center"> <img src="docs/data_1.png" alt="Dataset continuous" width="800"> </p>
 
@@ -144,8 +144,13 @@ Let's have a brief look at the code as well:
 > code: [`model_train.jl`](model_train.jl) and selecting `run = :single` as run type.
 
 ## Application to canton de Vaud
-Using the trained model, we can now apply it to map the probability of landslide occurrence over the entire canton de Vaud:
+We can now apply our trained machine or model in order to map the probability of landslide occurrence over the entire canton de Vaud. To do so, we perform following steps:
+- process the GeoTif files combining all data into a single DataFrame
+- coerce and `OneHotEncode` the categorical data, making sure the number of classes match the number from the  training set (otherwise we'll get erroneous results or the machine will fail)
+- normalise the data set
+- treat the `missing` values in an appropriate way
 
+The output of the model is the probability of landslide occurrence (%), here reported in 6 classes:
 <p align="center"> <img src="docs/ls_vd.png" alt="sample output" width="800"> </p>
 
 ```
@@ -159,6 +164,8 @@ class │ Prob. landslide
     1 │ < 0.25
 ```
 
+The application code is fairly simple, as it mostly does preprocessing and needs simply to load the trained machine.
+
 > code: [`model_use.jl`](model_use.jl) and loading the previously trained machine.
 
 ### Qualitative comparison to landslide data
@@ -169,17 +176,22 @@ The following figure depicts the observation of landslide occurrence in canton d
 We see the trained ML model captures somewhat the trend but the fit is not that outstanding yet.
 
 ## Food for thoughts
-#### Data-science
-- The 4 main features showing highest relative importance include: `Slope`, `dist_roads`, `profil_curvature`, `DEM`. Interestingly, the distance to nearest road is listed there. It may be actually a bias from the training data as landslides are not most likely to occur close to roads, but are certainly more accurately mapped and monitored close to roads.
-- Manual tuning could be applied to ML algorithms - here the default are used.
-- Data preprocessing and conversion from `Count` to `OrderedFactor` or `MultiClass` types using the `OneHot` approach may be done differently.
-- Spatial aggregation of the output data may be justified to remove some pixel-effects (using e.g. some Gaussian filters?).
-- More care should be ported to post-processing the data, including generating appropriate probability classes, maps, etc...
+Let's finally reflect on the predictability or output of the model, and how to select the "best" ones.
 
-#### Numerics
+#### Data-science and predictions
+- The 4 main features showing highest relative importance include: `Slope`, `dist_roads`, `profil_curvature`, `DEM`. Interestingly, the distance to nearest road is listed there. It may be actually a bias from the training data as landslides are not most likely to occur close to roads, but are certainly more accurately mapped and monitored close to roads.
+- Additional manual tuning could be applied to optimise the training process - I here used the default or tried some improvement.
+- Data preprocessing and conversion from `Count` to `OrderedFactor` or `MultiClass` types using the `OneHot` approach may be done differently. In particular, different approaches to normalise the data could be tested and maybe realised "carefully".
+- Spatial aggregation of the output data may be justified to remove some pixel-effects (using e.g. some Gaussian filters, K-mean, etc...).
+- Generating more realisation in order to get a statistically relevant sample may circumvent the rather variability in the results.
+- More care should be ported to post-processing the data, including generating appropriate probability classes, maps, etc...
+- Although giving better results in the ROC curves, it seems that the `RandomForestClassifier` and `ExtraTreesClassifier` suffer from over-fitting as the application to real data delivers poor spacial distributions
+
+#### Numerics and optimisations
 - Work with reduced precision (`Float32`)
-- GPU acceleration
-- Julia specific: type stability, ...
+- Further perform "on-the-fly" computations to avoid using too much memory
+- Further leverage GPU acceleration
+- Julia specific: type stability, packaging and more
 
 ## Package used
 This code uses, `MLJ`, `PrettyPrinting`, `CSV`, `DataFrames`, `Rasters`, `Statistics` and `Plots`.
