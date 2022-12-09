@@ -175,6 +175,15 @@ The following figure depicts the observation of landslide occurrence in canton d
 
 We see the trained ML model captures somewhat the trend but the fit is not that outstanding yet.
 
+### Excluding the road proximity variable
+The distance to closest road variable may actually not be relevant in the process as this category would actually rather be used for, e.g., performing risk analysis. However, it may correlate with the fact that more observation close to roads may be possible and actually done. Let's thus apply our workflow but this time excluding the `dist_roads` variable.
+
+We obtain following probability map of landslide occurrence:
+<p align="center"> <img src="docs/ls_vd_nr.png" alt="sample output" width="800"> </p>
+
+For corresponding ROC curve and confusion matrix:
+<p align="center"> <img src="docs/roc_cm_nr.png" alt="ROC curve and confusion matrix" width="800"> </p>
+
 ## Food for thoughts
 Let's finally reflect on the predictability or output of the model, and how to select the "best" ones.
 
