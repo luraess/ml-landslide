@@ -203,4 +203,4 @@ This problem can also be adressed using an Artificial Neuron Network (ANN) appro
 ### References
 - Tonini, M.; D’Andrea, M.; Biondi, G.; Degli Esposti, S.; Trucchia, A.; Fiorucci, P. A Machine Learning-Based Approach for Wildfire Susceptibility Mapping. The Case Study of the Liguria Region in Italy. Geosciences 2020, 10, 105. https://doi.org/10.3390/geosciences10030105
 - Park, S.; Kim, J. Landslide Susceptibility Mapping Based on Random Forest and Boosted Regression Tree Models, and a Comparison of Their Performance. Appl. Sci. 2019, 9, 942. https://doi.org/10.3390/app9050942
-- https://juliaai.github.io/DataScienceTutorials.jl/end-to-end/
+- [https://juliaai.github.io/DataScienceTutorials.jl](https://juliaai.github.io/DataScienceTutorials.jl)
