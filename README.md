@@ -18,6 +18,33 @@ The area of interest is the canton de Vaud, Switzerland. The data set is compose
 The remaining 2 sets represent discrete or categorical classes:
 <p align="center"> <img src="docs/data_2.png" alt="Dataset classes" width="800"> </p>
 
+#### Geology and Landcover represent following categories
+
+| ID | Geological classes   |
+| -- | ------------------   |
+| 1  | Glacial deposits     |
+| 2  | Carbonates           |
+| 3  | Marly-limestone      |
+| 9  | Alluvial deposits    |
+| 10 | Artificial materials |
+| 11 | Slope deposits       |
+| 24 | Detrital rocks       |
+| 31 | Metamorphic rocks    |
+| 36 | Evaporitic rocks     |
+| 37 | Magmatic rocks       |
+
+| ID | Land Cover classes    |
+| -- | ------------------    |
+| 11 | Impermeable man-made  |
+| 15 | Permeable man-made    |
+| 21 | Herbaceous vegetation |
+| 31 | Shrub vegetation      |
+| 41 | Forest                |
+| 51 | Bare soil             |
+| 62 | Glacier and water body|
+
+> :bulb: **Note** ID values are not consecutive from 1 to 10 since they came from the national map. The information can be retrieved at [https://www.geocat.ch/datahub/](https://www.geocat.ch/datahub/).
+
 ### Input data as `CSV` file
 The `Landslides.csv` file contains a subset of the data including the dependent variable `LS` which reports the presence/absence of landslides. Using `CSV` and `DataFrames.jl` Julia packages, we can load and examine the dataset, which contains 5185 entries:
 ```julia
@@ -110,7 +137,7 @@ and apply it to our training data. Besides reporting the receiver operating char
 
 <p align="center"> <img src="docs/roc_cm.png" alt="ROC curve and confusion matrix" width="800"> </p>
 
-and the corresponding metrics: 
+and the corresponding metrics:
 ```
 Model evaluation metrics
 - cross entropy loss: 0.3631387528119737
@@ -207,7 +234,11 @@ Let's finally reflect on the predictability or output of the model, and how to s
 This code uses, `MLJ`, `PrettyPrinting`, `CSV`, `DataFrames`, `Rasters`, `Statistics` and `Plots`.
 
 ### Alternative
-This problem can also be adressed using an Artificial Neuron Network (ANN) approach based on [Flux](https://github.com/FluxML/Flux.jl) "only": [https://github.com/tduretz/Landslides_ANN](https://github.com/tduretz/Landslides_ANN)
+This problem can also be addressed using an Artificial Neuron Network (ANN) approach based on [Flux](https://github.com/FluxML/Flux.jl) "only": [https://github.com/tduretz/Landslides_ANN](https://github.com/tduretz/Landslides_ANN)
+
+
+### Additional material
+Further informations and analogous `R`-based material can be found in Dr Tonini's MSc class at University of Lausanne: [https://marj73.github.io/AGDA_Rbook/global-rf.html#rf-for-landslides-susceptibility-mapping](https://marj73.github.io/AGDA_Rbook/global-rf.html#rf-for-landslides-susceptibility-mapping)
 
 ### References
 - Tonini, M.; D’Andrea, M.; Biondi, G.; Degli Esposti, S.; Trucchia, A.; Fiorucci, P. A Machine Learning-Based Approach for Wildfire Susceptibility Mapping. The Case Study of the Liguria Region in Italy. Geosciences 2020, 10, 105. https://doi.org/10.3390/geosciences10030105
